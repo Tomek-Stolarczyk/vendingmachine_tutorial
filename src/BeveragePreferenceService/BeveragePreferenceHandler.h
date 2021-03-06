@@ -5,6 +5,7 @@
 #include <string>
 #include <regex>
 #include <future>
+#include <array>
 
 #include "../../gen-cpp/BeveragePreferenceService.h"
 
@@ -26,8 +27,13 @@ class BeveragePreferenceServiceHandler : public BeveragePreferenceServiceIf {
 void BeveragePreferenceServiceHandler::getBeverage(std::string& _return, const BeverageType::type beverage_type){
    // Your implementation goes here
    printf("getBeverage\n");
-   if(beverage_type == BeverageType::type::COLD) _return = "Coke";
-   else _return  = "warm coke";
+
+   const std::array<const char*, 3> warm_drinks = {"cappuccino", "latte", "espresso"};
+   const std::array<const char*, 3> cold_drinks = {"lemonade", "ice tea", "soda"};
+
+   const auto& drink_selection = (beverage_type == BeverageType::type::COLD) ? warm_drinks : cold_drinks;
+
+   _return = drink_selection[rand() % drink_selection.size()];
 
    return;
 }

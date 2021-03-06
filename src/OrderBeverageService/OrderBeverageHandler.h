@@ -67,11 +67,26 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
     }
     _weather_client_pool->Push(weather_client_wrapper);
 
-   // 3. business logic
-   if(weatherType == WeatherType::type::WARM)
-	_return = "Cold beverage";
-   else
-        _return = "Hot beverage";
+    // 3. get the beverage preference service client pool
+    auto pref_client_wrapper = _pref_client_pool->Pop();
+    if (!pref_client_wrapper) {
+      ServiceException se;
+      se.errorCode = ErrorCode::SE_THRIFT_CONN_ERROR;
+      se.message = "Failed to connect to beverage-preference-service";
+      throw se;
+    }
+    auto pref_client = pref_client_wrapper->GetClient();
+
+    // 4. call the remote procedure : getBeverage
+    try {
+      BeverageType::type bev_type = weatherType == WeatherType::type::COLD ? BeverageType::type::HOT : BeverageType::type::COLD;
+      pref_client->getBeverage(_return, bev_type);
+    } catch (...) {
+      _pref_client_pool->Push(pref_client_wrapper);
+      LOG(error) << "Failed to send call getBeverage to deverage-preference-client";
+      throw;
+    }
+    _pref_client_pool->Push(pref_client_wrapper);
 }
 
 } // namespace vending_machine
