@@ -8,6 +8,7 @@
 
 #include "../../gen-cpp/OrderBeverageService.h"
 #include "../../gen-cpp/WeatherService.h"
+#include "../../gen-cpp/BeveragePreferenceService.h"
 
 #include "../ClientPool.h"
 #include "../ThriftClient.h"
@@ -18,20 +19,24 @@ namespace vending_machine{
 class OrderBeverageServiceHandler : public OrderBeverageServiceIf {
  public:
   OrderBeverageServiceHandler(
-		  ClientPool<ThriftClient<WeatherServiceClient>> *) ;
+		  ClientPool<ThriftClient<WeatherServiceClient>> *,
+                  ClientPool<ThriftClient<BeveragePreferenceServiceClient>> *) ;
   ~OrderBeverageServiceHandler() override=default;
 
   void PlaceOrder(std::string& _return, const int64_t city) override;
  private:
   ClientPool<ThriftClient<WeatherServiceClient>> *_weather_client_pool;
+  ClientPool<ThriftClient<BeveragePreferenceServiceClient>> * _pref_client_pool;
 };
 
 // Constructor
 OrderBeverageServiceHandler::OrderBeverageServiceHandler(
-		ClientPool<ThriftClient<WeatherServiceClient>> *weather_client_pool) {
+		ClientPool<ThriftClient<WeatherServiceClient>> *weather_client_pool,
+                ClientPool<ThriftClient<BeveragePreferenceServiceClient>> * beverage_preference_client_pool) {
 
      // Storing the clientpool
      _weather_client_pool = weather_client_pool;
+     _pref_client_pool = beverage_preference_client_pool;
 }
 
 // Remote Procedure "PlaceOrder"
@@ -39,8 +44,6 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
      // Your implementation goes here
      printf("PlaceOrder\n");
 
-     //return BeverageType::type::COLD;
-#if 1   
     // 1. get the weather service client pool
     auto weather_client_wrapper = _weather_client_pool->Pop();
     if (!weather_client_wrapper) {
@@ -63,13 +66,12 @@ void OrderBeverageServiceHandler::PlaceOrder(std::string& _return, const int64_t
       throw;
     }
     _weather_client_pool->Push(weather_client_wrapper);
-    
+
    // 3. business logic
    if(weatherType == WeatherType::type::WARM)
-	_return = "Cold beverage";//BeverageType::type::COLD;
+	_return = "Cold beverage";
    else
-	   _return = "Hot beverage";//BeverageType::type::HOT;
-#endif
+        _return = "Hot beverage";
 }
 
 } // namespace vending_machine

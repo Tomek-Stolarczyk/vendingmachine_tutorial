@@ -19,8 +19,6 @@ exception ServiceException {
     2: string message;
 }
 
-
-
 struct location{
 	1: i64 location_id;
 	2: i64 city;
@@ -53,4 +51,10 @@ service WeatherService{
 	WeatherType GetWeather(
 		1: i64 city
 	)
+}
+
+service BeveragePreferenceService{
+        string getBeverage(
+                1: BeverageType beverage_type
+        )
 }
